@@ -2,6 +2,7 @@ library(tidyverse)
 library(lubridate)
 
 
+#Date Prepare and Process
 #Import Data
 aggregate_data_from_folder<-function(){
   all_month_data <- tibble()
@@ -27,5 +28,33 @@ for (column in column_name) {
   na_count <- bike_share_data %>% select(column) %>% is.na() %>% sum()
   column_info<- rbind(column_info, tibble(column, count, unique_count, na_count))
 }
-
 column_info
+
+#Filter the reocrd with missing value
+bike_share_data_complete <- bike_share_data %>% filter(complete.cases(.))
+
+#Add ride length and day of the week columns
+bike_share_data_complete <- bike_share_data_complete %>% 
+  mutate(ride_length = ended_at - started_at, day_of_week = wday(started_at) ) 
+
+#Data Analyze
+#Descriptive statistics
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+bike_share_data_complete$ride_length %>% mean
+bike_share_data_complete$ride_length %>% max
+bike_share_data_complete$day_of_week %>% getmode
+
+bike_share_data_complete %>% 
+  group_by(member_casual) %>% 
+  summarise(average_ride_length = mean(ride_length))
+
+bike_share_data_complete %>% 
+  group_by(day_of_week) %>% 
+  summarise(average_ride_length = mean(ride_length))
+
+bike_share_data_complete %>% 
+  group_by(day_of_week) %>% 
+  summarise( number_of_rider = length(ride_id ))
