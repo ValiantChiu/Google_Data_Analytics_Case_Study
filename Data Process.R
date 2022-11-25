@@ -47,14 +47,32 @@ bike_share_data_complete$ride_length %>% mean
 bike_share_data_complete$ride_length %>% max
 bike_share_data_complete$day_of_week %>% getmode
 
-bike_share_data_complete %>% 
+bike_share_data_complete_with_season <- bike_share_data_complete %>% 
+  mutate(season = floor_date(started_at, unit = 'season') %>% as.character() %>% substr(6,7))
+
+
+#without season
+bike_share_data_complete_with_season %>% 
   group_by(member_casual) %>% 
   summarise(average_ride_length = mean(ride_length))
 
-bike_share_data_complete %>% 
+bike_share_data_complete_with_season %>% 
   group_by(day_of_week) %>% 
   summarise(average_ride_length = mean(ride_length))
 
-bike_share_data_complete %>% 
+bike_share_data_complete_with_season %>% 
   group_by(day_of_week) %>% 
+  summarise( number_of_rider = length(ride_id ))
+
+#with season
+bike_share_data_complete_with_season %>% 
+  group_by(member_casual, season) %>% 
+  summarise(average_ride_length = mean(ride_length))
+
+bike_share_data_complete_with_season %>% 
+  group_by(day_of_week, season) %>% 
+  summarise(average_ride_length = mean(ride_length))
+
+bike_share_data_complete_with_season %>% 
+  group_by(day_of_week, season) %>% 
   summarise( number_of_rider = length(ride_id ))
