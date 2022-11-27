@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
 
-
+setwd("~/Google_Data_Analytics_Case_Study")
 #Date Prepare and Process
 #Import Data
 aggregate_data_from_folder<-function(){
@@ -50,8 +50,14 @@ bike_share_data_complete$day_of_week %>% getmode
 bike_share_data_complete_with_season <- bike_share_data_complete %>% 
   mutate(season = floor_date(started_at, unit = 'season') %>% as.character() %>% substr(6,7))
 
+#clear not used dataframe to save your memory if memory not large
+if (memory.size()/1024 <= 10) {
+  rm(bile_share_date)
+  rm(bike_share_data_complete)
+}
 
-#without season
+
+#without season analysis
 bike_share_data_complete_with_season %>% 
   group_by(member_casual) %>% 
   summarise(average_ride_length = mean(ride_length))
@@ -64,15 +70,22 @@ bike_share_data_complete_with_season %>%
   group_by(day_of_week) %>% 
   summarise( number_of_rider = length(ride_id ))
 
-#with season
+#with season analysis
+season_mapping_table <- tibble(season = c('03','06','09','12'), 
+                               season_info = c('spring', 'summer','fall', 'winter'))
 bike_share_data_complete_with_season %>% 
-  group_by(member_casual, season) %>% 
-  summarise(average_ride_length = mean(ride_length))
+  group_by(season) %>% 
+  summarise(average_ride_length = mean(ride_length)) %>% left_join(season_mapping_table)
 
 bike_share_data_complete_with_season %>% 
-  group_by(day_of_week, season) %>% 
-  summarise(average_ride_length = mean(ride_length))
+  group_by(member_casual,season) %>% 
+  summarise( number_of_rider = length(ride_id )) %>% left_join(season_mapping_table)
 
-bike_share_data_complete_with_season %>% 
-  group_by(day_of_week, season) %>% 
-  summarise( number_of_rider = length(ride_id ))
+
+bike_share_data_complete_with_season$ride_id %>% unique %>% length()
+bike_share_data_complete_with_season %>% nrow
+#store the raw data for Tableau visualization
+write.csv(bike_share_data_complete_with_season, file = 'Data/bike_share_data_complete_with_season.csv')
+
+write.csv(season_mapping_table, file = 'Data/season_mapping_table.csv')
+
